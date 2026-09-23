@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Terror on Hwy 127 — Team Roster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0a0a0b; --panel:#17171a; --panel2:#1c1214; --red:#a10f18; --red2:#e0141d;
+  --cream:#ece3ca; --text:#f1ece0; --muted:#948d82; --border:#2b2b2f;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:inherit}
+html{background:var(--bg); scroll-padding-top:env(safe-area-inset-top,0px);}
+body{
+  margin:0; min-height:100%; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+}
+.display{font-family:'Creepster',Impact,'Arial Narrow Bold',sans-serif; font-weight:400;}
+
+/* banner */
+.banner{
+  position:relative; overflow:hidden; text-align:center;
+  padding:34px 70px 24px; background:#000; border-bottom:2px solid var(--red);
+}
+.banner-bg{
+  position:absolute; inset:-30px;
+  background-image:url("logo.png");
+  background-size:220px;
+  background-repeat:no-repeat;
+  background-position:center 40%;
+  background-color:#000;
+  filter:blur(16px) saturate(1.15);
+  transform:scale(1.5);
+}
+.banner::after{
+  content:''; position:absolute; inset:0;
+  background:rgba(5,5,6,.55);
+}
+.banner-content{position:relative; z-index:1;}
+.logo{
+  max-width:110px; width:26vw; height:auto;
+  filter:drop-shadow(0 0 14px rgba(161,15,24,.6));
+}
+.banner h1{
+  margin:10px 0 2px; font-size:clamp(1.6rem,6vw,2.4rem);
+  letter-spacing:1px; color:var(--cream);
+}
+.page-label{
+  margin:0; color:var(--muted); font-size:.9rem; font-weight:700;
+}
+.menu-trigger{
+  position:absolute; top:12px; right:12px; z-index:2;
+  background:rgba(10,10,11,.6); border:1px solid var(--border);
+  color:var(--text); padding:8px 14px; border-radius:6px;
+  cursor:pointer; font-size:.85rem;
+}
+.menu-trigger:hover{border-color:var(--red);}
+
+/* dropdown menu */
+.mini-menu{
+  position:fixed; background:var(--panel); border:1px solid var(--red);
+  border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,.55);
+  z-index:45; min-width:180px; overflow:hidden;
+}
+.mini-menu.hidden{display:none;}
+.menu-item{
+  display:block; width:100%; text-align:left; background:none; border:none;
+  color:var(--text); padding:11px 16px; cursor:pointer; font-size:.9rem;
+  font-family:inherit;
+}
+.menu-item:hover{background:var(--red); color:#fff;}
+.menu-item.active{color:var(--red2); font-weight:700;}
+.menu-divider{height:1px; background:var(--border); margin:2px 0;}
+
+/* grid + cards */
+.roster-grid{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+  gap:20px; max-width:1200px; margin:0 auto; padding:26px 24px 60px;
+}
+.empty{
+  grid-column:1/-1; text-align:center; color:var(--muted);
+  padding:70px 20px; font-size:1rem;
+}
+.card{
+  position:relative; display:flex; background:var(--panel);
+  border:1px solid var(--border); border-radius:10px; overflow:hidden;
+  transition:border-color .15s,box-shadow .15s; cursor:pointer;
+}
+.card:hover{
+  border-color:var(--red);
+  box-shadow:0 6px 18px rgba(0,0,0,.4);
+}
+.card-photo{
+  position:relative; width:36%; min-width:110px; display:flex;
+  align-items:center; justify-content:center; font-size:3.4rem;
+  background:linear-gradient(160deg,#2a2a2d,#0d0d0f);
+}
+.card-photo img{
+  width:100%; height:100%; object-fit:cover; display:block;
+}
+.status-flag{
+  position:absolute; top:8px; left:8px; font-size:.62rem;
+  font-weight:700; padding:3px 8px; border-radius:4px; color:#fff; z-index:1;
+}
+.status-flag.active{background:#2f8f4e;}
+.status-flag.questionable{background:#c98a1d;}
+.status-flag.out{background:#6b6b6f;}
+
+.card-info{
+  flex:1; min-width:0; padding:16px 50px 16px 18px;
+  display:flex; flex-direction:column; gap:4px;
+  border-left:3px solid var(--red);
+  background:linear-gradient(135deg,var(--panel2),#0d0d0e 65%);
+}
+.card-name{font-size:1.5rem; color:var(--cream); line-height:1.15;}
+.badge{
+  align-self:flex-start; font-size:.74rem; font-weight:700;
+  padding:3px 11px; border-radius:20px; color:#141414;
+  background:var(--muted); margin-top:3px;
+}
+.badge.jumpscare{background:#e8a33d;}
+.badge.mid{background:#d8c93d;}
+.badge.aggressive{background:#d8542f; color:#fff;}
+.badge.extreme{background:var(--red); color:#fff;}
+.badge.crew{background:#8a6bb0; color:#fff;}
+.scene-tag{margin:8px 0 0; font-size:.8rem; color:var(--muted);}
+.scene-tag strong{
+  display:block; font-weight:400; font-size:1.3rem;
+  color:var(--red2); line-height:1.2;
+}
+.stat-row{
+  display:flex; flex-wrap:wrap; gap:4px 16px; margin-top:auto;
+  padding-top:10px; border-top:1px dashed var(--border); font-size:.85rem;
+}
+.stat-row b{color:var(--cream); font-weight:600;}
+
+.delete-btn{
+  position:absolute; top:8px; right:8px;
+  width:26px; height:26px; border-radius:50%;
+  background:rgba(0,0,0,.55); border:1px solid var(--border);
+  color:var(--muted); display:flex; align-items:center;
+  justify-content:center; font-size:13px; cursor:pointer;
+  opacity:0; pointer-events:none;
+  transition:background .15s,color .15s,border-color .15s,opacity .15s;
+  z-index:3;
+}
+.card:hover .delete-btn{
+  opacity:1; pointer-events:auto;
+}
+.delete-btn:hover,.delete-btn:focus-visible{
+  background:var(--red); color:#fff; border-color:var(--red);
+}
+
+/* modals */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.78);
+  display:flex; align-items:center; justify-content:center;
+  padding:20px; z-index:50;
+}
+.modal-overlay.hidden{display:none;}
+#confirmOverlay{z-index:55}
+#cropOverlay{z-index:60}
+.modal{
+  background:var(--panel); border:1px solid var(--red); border-radius:10px;
+  padding:22px 24px; width:100%; max-width:420px;
+  max-height:90vh; overflow-y:auto;
+}
+#cropOverlay .modal{max-width:280px; text-align:center;}
+.modal h2{margin:0 0 14px; font-size:1.5rem; color:var(--cream);}
+.modal p{font-size:.92rem; color:var(--text); line-height:1.5;}
+.field{
+  margin-bottom:13px; display:flex; flex-direction:column;
+  gap:5px; text-align:left;
+}
+.field label{font-size:.82rem; color:var(--muted); font-weight:500;}
+.field input,.field select{
+  background:#0d0d0f; border:1px solid var(--border); color:var(--text);
+  padding:9px 10px; border-radius:5px; font-size:.92rem; font-family:inherit;
+}
+.field input:focus,.field select:focus{
+  outline:none; border-color:var(--red);
+}
+.photo-preview{
+  width:76px; height:96px; border-radius:8px;
+  object-fit:cover; background:#0d0d0f;
+}
+.modal-actions{
+  display:flex; align-items:center; gap:10px; margin-top:16px;
+  justify-content:flex-end;
+}
+.modal-delete-btn{margin-right:auto;}
+.modal-actions .right{display:flex; gap:10px;}
+.hidden{display:none !important;}
+.btn{
+  cursor:pointer; border-radius:6px; font-weight:700;
+  border:1px solid transparent; font-size:.88rem;
+  transition:background .15s,border-color .15s,color .15s;
+}
+.btn-primary{background:var(--red); color:#fff; padding:12px 26px;}
+.btn-primary:hover{background:var(--red2);}
+.btn-secondary{
+  background:transparent; border-color:var(--border);
+  color:var(--text); padding:10px 18px;
+}
+.btn-secondary:hover{border-color:var(--muted);}
+.btn-danger{
+  background:transparent; border-color:var(--red);
+  color:var(--red2); padding:10px 18px;
+}
+.btn-danger:hover{background:var(--red); color:#fff;}
+.btn-danger-solid{background:var(--red); color:#fff; padding:10px 18px;}
+.btn-danger-solid:hover{background:var(--red2);}
+
+/* crop */
+.crop-frame{
+  width:225px; height:300px; margin:0 auto; overflow:hidden;
+  position:relative; border-radius:8px; border:1px solid var(--border);
+  background:#000; cursor:grab; touch-action:none;
+}
+.crop-frame:active{cursor:grabbing;}
+.crop-frame img{
+  position:absolute; top:0; left:0; transform-origin:0 0;
+  user-select:none; -webkit-user-drag:none;
+}
+#zoomRange{
+  width:225px; display:block; margin:12px auto 0;
+  accent-color:var(--red);
+}
+.hint{font-size:.78rem; color:var(--muted); margin:8px 0 0;}
+
+@media (max-width:480px){
+  .card{flex-direction:column;}
+  .card-photo{width:100%; height:130px;}
+}
+
+.toolbar{max-width:1200px;margin:0 auto;padding:18px 24px 0;display:flex;gap:10px;flex-wrap:wrap;}
+.toolbar-note{color:var(--muted);font-size:.82rem;margin-left:auto;align-self:center;}
+.auth-box{max-width:390px;}
+.auth-status{min-height:20px;color:var(--muted);font-size:.82rem;margin:0 0 10px;}
+.admin-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.admin-table th,.admin-table td{padding:9px 6px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle;}
+.admin-table select{width:100%;background:#0d0d0f;color:var(--text);border:1px solid var(--border);border-radius:5px;padding:7px;}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111;border:1px solid var(--red);color:var(--text);padding:10px 14px;border-radius:7px;box-shadow:0 8px 24px rgba(0,0,0,.45);z-index:100;display:none;max-width:90vw;text-align:center;}
+.toast.show{display:block;}
+@media (max-width:480px){.toolbar-note{margin-left:0;}}
+</style>
+</head>
+<body>
+
+<header class="banner">
+  <div class="banner-bg" aria-hidden="true"></div>
+
+  <button class="menu-trigger" id="menuTrigger"
+          aria-haspopup="true" aria-expanded="false">
+    ☰ Menu
+  </button>
+
+  <div class="banner-content">
+    <img class="logo" src="logo.png" alt="Terror on Hwy 127 Georgia logo">
+    <h1 class="display">Terror on Hwy 127</h1>
+    <p class="page-label" id="pageLabel">Team Roster</p>
+  </div>
+</header>
+
+<div class="mini-menu hidden" id="mainMenu" role="menu">
+  <div class="menu-user" id="menuUser" style="padding:9px 16px;color:var(--muted);font-size:.78rem;border-bottom:1px solid var(--border);">Public viewer</div>
+  <button type="button" class="menu-item" data-view="people" role="menuitem">Team Roster</button>
+  <button type="button" class="menu-item" data-view="scenes" role="menuitem">Scenes</button>
+  <div class="menu-divider"></div>
+  <button type="button" class="menu-item hidden" id="addMenuItem" role="menuitem">+ Add Person</button>
+  <button type="button" class="menu-item hidden" id="adminMenuItem" role="menuitem">Admin</button>
+  <button type="button" class="menu-item" id="loginMenuItem" role="menuitem">Log In</button>
+  <button type="button" class="menu-item hidden" id="logoutMenuItem" role="menuitem">Log Out</button>
+</div>
+
+<main class="roster-grid" id="rosterGrid"></main>
+
+
+<div class="toolbar">
+  <div class="toolbar-note" id="permissionNote">Public read-only</div>
+</div>
+
+<!-- Authentication -->
+<div class="modal-overlay hidden" id="authOverlay">
+  <div class="modal auth-box" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <h2 class="display" id="authTitle">Log In</h2>
+    <form id="authForm">
+      <div class="field">
+        <label for="authEmail">Email</label>
+        <input type="email" id="authEmail" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="authPassword">Password</label>
+        <input type="password" id="authPassword" required minlength="6" autocomplete="current-password">
+      </div>
+      <p class="auth-status" id="authStatus"></p>
+      <div class="modal-actions">
+        <div class="right">
+          <button type="button" class="btn btn-secondary" id="authCancelBtn">Cancel</button>
+          <button type="button" class="btn btn-secondary" id="authToggleBtn">Create Account</button>
+          <button type="submit" class="btn btn-primary" id="authSubmitBtn">Log In</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Admin -->
+<div class="modal-overlay hidden" id="adminOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+    <h2 class="display" id="adminTitle">Admin</h2>
+    <p>New accounts start as viewers. Give a team member Editor access here.</p>
+    <div id="adminTableWrap">Loading users…</div>
+    <div class="modal-actions">
+      <div class="right">
+        <button type="button" class="btn btn-secondary" id="adminCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Person modal -->
+<div class="modal-overlay hidden" id="personOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="personModalTitle">
+    <h2 class="display" id="personModalTitle">Add Person</h2>
+
+    <form id="personForm">
+      <div class="field">
+        <label for="personPhotoInput">Photo</label>
+        <img id="personPhotoPreview" class="photo-preview hidden" alt="Preview of uploaded photo">
+        <input type="file" id="personPhotoInput" accept="image/*">
+      </div>
+
+      <div class="field">
+        <label for="personName">Name</label>
+        <input type="text" id="personName" required placeholder="Actor or crew member's name">
+      </div>
+
+      <div class="field">
+        <label for="personCategory">Category</label>
+        <select id="personCategory">
+          <option value="Scare Actor">Scare Actor</option>
+          <option value="Behind the Scenes">Behind the Scenes</option>
+        </select>
+      </div>
+
+      <div class="field" id="positionField">
+        <label for="personPosition">Position</label>
+        <select id="personPosition">
+          <option value="Jumpscare">Jumpscare</option>
+          <option value="Mid">Mid</option>
+          <option value="Aggressive">Aggressive</option>
+          <option value="Extreme">Extreme</option>
+          <option value="Other">Other…</option>
+        </select>
+      </div>
+
+      <div class="field hidden" id="positionCustomField">
+        <label for="personPositionCustom">Custom position</label>
+        <input type="text" id="personPositionCustom" placeholder="e.g. Silent Stalker">
+      </div>
+
+      <div class="field hidden" id="crewField">
+        <label for="personCrewRole">Crew role</label>
+        <select id="personCrewRole">
+          <option value="Makeup Artist">Makeup Artist</option>
+          <option value="Construction">Construction</option>
+          <option value="Staging">Staging</option>
+          <option value="Other">Other…</option>
+        </select>
+      </div>
+
+      <div class="field hidden" id="crewCustomField">
+        <label for="personCrewCustom">Custom role</label>
+        <input type="text" id="personCrewCustom" placeholder="e.g. Fog Technician">
+      </div>
+
+      <div class="field">
+        <label for="personScene">Scene</label>
+        <input type="text" id="personScene" placeholder="e.g. Cemetery Gates">
+      </div>
+
+      <div class="field">
+        <label for="personStatus">Status</label>
+        <select id="personStatus">
+          <option value="Active">Active</option>
+          <option value="Questionable">Questionable</option>
+          <option value="Out">Out</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="personExperience">Experience</label>
+        <input type="text" id="personExperience" placeholder="e.g. Rookie, 3rd Season">
+      </div>
+
+      <div class="field">
+        <label for="personAge">Age</label>
+        <input type="number" id="personAge" min="14" max="99">
+      </div>
+
+      <div class="field">
+        <label for="personHeight">Height</label>
+        <input type="text" id="personHeight" placeholder="e.g. 5'11&quot;">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-danger hidden modal-delete-btn" id="personDeleteBtn">Remove</button>
+        <div class="right">
+          <button type="button" class="btn btn-secondary" id="personCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Scene modal -->
+<div class="modal-overlay hidden" id="sceneOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sceneModalTitle">
+    <h2 class="display" id="sceneModalTitle">Add Scene</h2>
+
+    <form id="sceneForm">
+      <div class="field">
+        <label for="scenePhotoInput">Photo</label>
+        <img id="scenePhotoPreview" class="photo-preview hidden" alt="Preview of uploaded photo">
+        <input type="file" id="scenePhotoInput" accept="image/*">
+      </div>
+
+      <div class="field">
+        <label for="sceneName">Scene name</label>
+        <input type="text" id="sceneName" required placeholder="e.g. Cemetery Gates">
+      </div>
+
+      <div class="field">
+        <label for="sceneIntensity">Intensity</label>
+        <select id="sceneIntensity">
+          <option value="Jumpscare">Jumpscare</option>
+          <option value="Mid">Mid</option>
+          <option value="Aggressive">Aggressive</option>
+          <option value="Extreme">Extreme</option>
+          <option value="Other">Other…</option>
+        </select>
+      </div>
+
+      <div class="field hidden" id="sceneIntensityCustomField">
+        <label for="sceneIntensityCustom">Custom intensity</label>
+        <input type="text" id="sceneIntensityCustom" placeholder="e.g. Slow Burn">
+      </div>
+
+      <div class="field">
+        <label for="sceneLocation">Location</label>
+        <input type="text" id="sceneLocation" placeholder="e.g. Stop 4 / Barn">
+      </div>
+
+      <div class="field">
+        <label for="sceneStatus">Status</label>
+        <select id="sceneStatus">
+          <option value="Active">Active</option>
+          <option value="Questionable">Questionable</option>
+          <option value="Out">Out</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="sceneDescription">Description</label>
+        <input type="text" id="sceneDescription" placeholder="What happens here">
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-danger hidden modal-delete-btn" id="sceneDeleteBtn">Remove</button>
+        <div class="right">
+          <button type="button" class="btn btn-secondary" id="sceneCancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Confirm delete -->
+<div class="modal-overlay hidden" id="confirmOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <h2 class="display" id="confirmTitle">Remove?</h2>
+    <p id="confirmMessage">Remove this from the roster? This can't be undone.</p>
+
+    <div class="modal-actions">
+      <div class="right">
+        <button type="button" class="btn btn-secondary" id="confirmCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-danger-solid" id="confirmRemoveBtn">Remove</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Crop -->
+<div class="modal-overlay hidden" id="cropOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cropTitle">
+    <h2 class="display" id="cropTitle">Crop Photo</h2>
+
+    <div class="crop-frame" id="cropFrame">
+      <img id="cropImg" draggable="false" alt="">
+    </div>
+
+    <input type="range" id="zoomRange" min="1" max="3" step="0.01" value="1">
+    <p class="hint">Drag to reposition. Use the slider to zoom.</p>
+
+    <div class="modal-actions">
+      <div class="right">
+        <button type="button" class="btn btn-secondary" id="cropCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="cropConfirmBtn">Use Photo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://qypkcdgvinghvbyrrpsh.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CphGxdnqOadJHRdZKRjLjw_kp2CI_cA';
+const { createClient } = window.supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const KNOWN_POS=['jumpscare','mid','aggressive','extreme'];
+const KNOWN_CREW=['makeup artist','construction','staging'];
+
+let people=[], scenes=[], currentView='people';
+let editingPersonId=null, editingSceneId=null;
+let personPhotoData='', scenePhotoData='';
+let pendingDelete=null, cropTarget=null;
+let currentUser=null, currentRole='viewer', authMode='login';
+let cropState={imgEl:null,scale:1,x:0,y:0,dragging:false,startX:0,startY:0};
+
+const gridEl=document.getElementById('rosterGrid');
+const menuTrigger=document.getElementById('menuTrigger');
+const mainMenu=document.getElementById('mainMenu');
+const pageLabel=document.getElementById('pageLabel');
+const addMenuItem=document.getElementById('addMenuItem');
+const adminMenuItem=document.getElementById('adminMenuItem');
+const loginMenuItem=document.getElementById('loginMenuItem');
+const logoutMenuItem=document.getElementById('logoutMenuItem');
+const menuUser=document.getElementById('menuUser');
+const permissionNote=document.getElementById('permissionNote');
+const personOverlay=document.getElementById('personOverlay');
+const sceneOverlay=document.getElementById('sceneOverlay');
+const confirmOverlay=document.getElementById('confirmOverlay');
+const cropOverlay=document.getElementById('cropOverlay');
+const authOverlay=document.getElementById('authOverlay');
+const adminOverlay=document.getElementById('adminOverlay');
+const cropFrame=document.getElementById('cropFrame');
+const cropImgEl=document.getElementById('cropImg');
+const zoomRange=document.getElementById('zoomRange');
+
+function genId(){return crypto.randomUUID();}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function isEditor(){return currentRole==='editor'||currentRole==='admin';}
+function isAdmin(){return currentRole==='admin';}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>el.classList.remove('show'),2600);}
+
+function updateHeader(){
+  menuUser.textContent=currentUser?`${currentUser.email} • ${currentRole}`:'Public viewer';
+  permissionNote.textContent=isAdmin()?'Admin access':isEditor()?'Editor access':'Public read-only';
+  addMenuItem.classList.toggle('hidden',!isEditor());
+  adminMenuItem.classList.toggle('hidden',!isAdmin());
+  loginMenuItem.classList.toggle('hidden',!!currentUser);
+  logoutMenuItem.classList.toggle('hidden',!currentUser);
+}
+
+async function loadRole(){
+  currentRole='viewer';
+  if(!currentUser){updateHeader();return;}
+  const {data,error}=await db.from('profiles').select('role').eq('id',currentUser.id).single();
+  if(!error && data) currentRole=data.role||'viewer';
+  updateHeader();
+}
+
+async function loadData(){
+  const [pRes,sRes]=await Promise.all([
+    db.from('people').select('*').order('created_at',{ascending:true}),
+    db.from('scenes').select('*').order('created_at',{ascending:true})
+  ]);
+  if(pRes.error||sRes.error){
+    console.error(pRes.error||sRes.error);
+    gridEl.innerHTML='<p class="empty">Could not load the shared roster. Run the Supabase setup SQL first.</p>';
+    return;
+  }
+  people=pRes.data||[];
+  scenes=sRes.data||[];
+  render();
+}
+
+function personCardHtml(p){
+  const isCrew=p.category==='Behind the Scenes';
+  const roleValue=isCrew?(p.crew_role||'Unassigned'):(p.position||'Unassigned');
+  const k=roleValue.toLowerCase();
+  const badgeClass=KNOWN_POS.includes(k)?k:(isCrew?'crew':'');
+  const statusClass=(p.status||'Active').toLowerCase();
+  return `<div class="card" data-type="person" data-id="${p.id}">
+    ${isEditor()?`<button class="delete-btn" data-type="person" data-id="${p.id}" title="Remove" aria-label="Remove" type="button">✕</button>`:''}
+    <div class="card-photo"><span class="status-flag ${statusClass}">${esc(p.status||'Active')}</span>${p.photo?`<img src="${p.photo}" alt="${esc(p.name)}">`:'👻'}</div>
+    <div class="card-info"><span class="card-name display">${esc(p.name||'Unnamed')}</span><span class="badge ${badgeClass}">${esc(roleValue)}</span><p class="scene-tag">Scene <strong class="display">${esc(p.scene||'Unassigned')}</strong></p><div class="stat-row"><span><b>Experience:</b> ${esc(p.experience||'—')}</span><span><b>Age:</b> ${p.age?esc(p.age):'—'}</span><span><b>Height:</b> ${esc(p.height||'—')}</span></div></div>
+  </div>`;
+}
+
+function sceneCardHtml(s){
+  const k=(s.intensity||'').toLowerCase();
+  const badgeClass=KNOWN_POS.includes(k)?k:'';
+  const statusClass=(s.status||'Active').toLowerCase();
+  return `<div class="card" data-type="scene" data-id="${s.id}">
+    ${isEditor()?`<button class="delete-btn" data-type="scene" data-id="${s.id}" title="Remove" aria-label="Remove" type="button">✕</button>`:''}
+    <div class="card-photo"><span class="status-flag ${statusClass}">${esc(s.status||'Active')}</span>${s.photo?`<img src="${s.photo}" alt="${esc(s.name)}">`:'🎭'}</div>
+    <div class="card-info"><span class="card-name display">${esc(s.name||'Unnamed Scene')}</span><span class="badge ${badgeClass}">${esc(s.intensity||'Unrated')}</span><p class="scene-tag">Location <strong class="display">${esc(s.location||'Unassigned')}</strong></p><div class="stat-row"><span>${esc(s.description||'No description yet.')}</span></div></div>
+  </div>`;
+}
+
+function render(){
+  const list=currentView==='people'?people:scenes;
+  if(!list.length){gridEl.innerHTML=`<p class="empty">No ${currentView==='people'?"one's on the roster":'scenes'} yet. ${isEditor()?'Use the menu above to add your first '+(currentView==='people'?'person':'scene')+'.':'No entries have been added yet.'}</p>`;return;}
+  gridEl.innerHTML=list.map(item=>currentView==='people'?personCardHtml(item):sceneCardHtml(item)).join('');
+}
+
+function toggleMainMenu(show){
+  const willShow=show!==undefined?show:mainMenu.classList.contains('hidden');
+  if(willShow){const r=menuTrigger.getBoundingClientRect();mainMenu.style.top=(r.bottom+6)+'px';mainMenu.style.right=(window.innerWidth-r.right)+'px';mainMenu.classList.remove('hidden');menuTrigger.setAttribute('aria-expanded','true');}
+  else{mainMenu.classList.add('hidden');menuTrigger.setAttribute('aria-expanded','false');}
+}
+function setView(view){currentView=view;pageLabel.textContent=view==='people'?'Team Roster':'Scenes';addMenuItem.textContent=view==='people'?'+ Add Person':'+ Add Scene';mainMenu.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));render();}
+menuTrigger.addEventListener('click',e=>{e.stopPropagation();toggleMainMenu();});
+mainMenu.querySelectorAll('[data-view]').forEach(btn=>btn.addEventListener('click',()=>{setView(btn.dataset.view);toggleMainMenu(false);}));
+addMenuItem.addEventListener('click',()=>{toggleMainMenu(false);currentView==='people'?openPersonModal(null):openSceneModal(null);});
+adminMenuItem.addEventListener('click',()=>{toggleMainMenu(false);openAdmin();});
+loginMenuItem.addEventListener('click',()=>{toggleMainMenu(false);openAuth('login');});
+logoutMenuItem.addEventListener('click',async()=>{toggleMainMenu(false);await db.auth.signOut();toast('Logged out');});
+document.addEventListener('click',()=>mainMenu.classList.add('hidden'));
+
+gridEl.addEventListener('click',e=>{
+  const del=e.target.closest('.delete-btn');
+  if(del){e.stopPropagation();requestDelete(del.dataset.type,del.dataset.id);return;}
+  const card=e.target.closest('.card');
+  if(!card||!isEditor())return;
+  if(card.dataset.type==='person'){const p=people.find(x=>x.id===card.dataset.id);if(p)openPersonModal(p);}
+  else{const s=scenes.find(x=>x.id===card.dataset.id);if(s)openSceneModal(s);}
+});
+
+function requestDelete(type,id){
+  if(!isEditor())return;
+  pendingDelete={type,id};
+  const item=type==='person'?people.find(x=>x.id===id):scenes.find(x=>x.id===id);
+  document.getElementById('confirmMessage').textContent=`Remove "${item?.name||'this entry'}"? This can't be undone.`;
+  confirmOverlay.classList.remove('hidden');
+}
+document.getElementById('confirmCancelBtn').addEventListener('click',()=>{confirmOverlay.classList.add('hidden');pendingDelete=null;});
+document.getElementById('confirmRemoveBtn').addEventListener('click',async()=>{
+  if(!pendingDelete||!isEditor())return;
+  const table=pendingDelete.type==='person'?'people':'scenes';
+  const {error}=await db.from(table).delete().eq('id',pendingDelete.id);
+  if(error){toast(error.message);return;}
+  pendingDelete=null;confirmOverlay.classList.add('hidden');await loadData();toast('Removed');
+});
+
+function updateCategoryFields(){
+  const isCrew=document.getElementById('personCategory').value==='Behind the Scenes';
+  document.getElementById('positionField').classList.toggle('hidden',isCrew);
+  document.getElementById('crewField').classList.toggle('hidden',!isCrew);
+  if(isCrew)document.getElementById('positionCustomField').classList.add('hidden');else document.getElementById('crewCustomField').classList.add('hidden');
+}
+document.getElementById('personCategory').addEventListener('change',updateCategoryFields);
+document.getElementById('personPosition').addEventListener('change',()=>document.getElementById('positionCustomField').classList.toggle('hidden',document.getElementById('personPosition').value!=='Other'));
+document.getElementById('personCrewRole').addEventListener('change',()=>document.getElementById('crewCustomField').classList.toggle('hidden',document.getElementById('personCrewRole').value!=='Other'));
+
+function openPersonModal(p){
+  if(!isEditor())return;
+  editingPersonId=p?p.id:null;
+  document.getElementById('personModalTitle').textContent=p?'Edit Person':'Add Person';
+  document.getElementById('personDeleteBtn').classList.toggle('hidden',!p);
+  document.getElementById('personName').value=p?.name||'';
+  document.getElementById('personCategory').value=p?.category||'Scare Actor';
+  document.getElementById('personScene').value=p?.scene||'';
+  document.getElementById('personStatus').value=p?.status||'Active';
+  document.getElementById('personExperience').value=p?.experience||'';
+  document.getElementById('personAge').value=p?.age||'';
+  document.getElementById('personHeight').value=p?.height||'';
+  personPhotoData=p?.photo||'';
+  const prev=document.getElementById('personPhotoPreview');prev.src=personPhotoData;prev.classList.toggle('hidden',!personPhotoData);
+  const posSel=document.getElementById('personPosition');
+  const posKnown=p&&KNOWN_POS.includes((p.position||'').toLowerCase());
+  if(p&&p.position&&!posKnown){posSel.value='Other';document.getElementById('positionCustomField').classList.remove('hidden');document.getElementById('personPositionCustom').value=p.position;}
+  else{posSel.value=p?.position||'Jumpscare';document.getElementById('positionCustomField').classList.add('hidden');document.getElementById('personPositionCustom').value='';}
+  const crewSel=document.getElementById('personCrewRole');
+  const crewKnown=p&&KNOWN_CREW.includes((p.crew_role||'').toLowerCase());
+  if(p&&p.crew_role&&!crewKnown){crewSel.value='Other';document.getElementById('crewCustomField').classList.remove('hidden');document.getElementById('personCrewCustom').value=p.crew_role;}
+  else{crewSel.value=p?.crew_role||'Makeup Artist';document.getElementById('crewCustomField').classList.add('hidden');document.getElementById('personCrewCustom').value='';}
+  updateCategoryFields();personOverlay.classList.remove('hidden');document.getElementById('personName').focus();
+}
+function closePersonModal(){personOverlay.classList.add('hidden');}
+document.getElementById('personCancelBtn').addEventListener('click',closePersonModal);
+document.getElementById('personDeleteBtn').addEventListener('click',()=>{if(editingPersonId)requestDelete('person',editingPersonId);});
+document.getElementById('personForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(!isEditor())return;
+  const category=document.getElementById('personCategory').value;const posVal=document.getElementById('personPosition').value;
+  const position=category==='Scare Actor'?(posVal==='Other'?(document.getElementById('personPositionCustom').value.trim()||'Other'):posVal):'';
+  const crewVal=document.getElementById('personCrewRole').value;
+  const crew_role=category==='Behind the Scenes'?(crewVal==='Other'?(document.getElementById('personCrewCustom').value.trim()||'Other'):crewVal):'';
+  const data={id:editingPersonId||genId(),name:document.getElementById('personName').value.trim()||'Unnamed',photo:personPhotoData,category,position,crew_role,scene:document.getElementById('personScene').value.trim(),status:document.getElementById('personStatus').value,experience:document.getElementById('personExperience').value.trim(),age:document.getElementById('personAge').value?Number(document.getElementById('personAge').value):null,height:document.getElementById('personHeight').value.trim()};
+  const {error}=editingPersonId?await db.from('people').update(data).eq('id',editingPersonId):await db.from('people').insert(data);
+  if(error){toast(error.message);return;}closePersonModal();await loadData();toast(editingPersonId?'Updated':'Added');
+});
+
+document.getElementById('sceneIntensity').addEventListener('change',()=>document.getElementById('sceneIntensityCustomField').classList.toggle('hidden',document.getElementById('sceneIntensity').value!=='Other'));
+function openSceneModal(s){
+  if(!isEditor())return;editingSceneId=s?s.id:null;document.getElementById('sceneModalTitle').textContent=s?'Edit Scene':'Add Scene';document.getElementById('sceneDeleteBtn').classList.toggle('hidden',!s);
+  document.getElementById('sceneName').value=s?.name||'';document.getElementById('sceneLocation').value=s?.location||'';document.getElementById('sceneStatus').value=s?.status||'Active';document.getElementById('sceneDescription').value=s?.description||'';
+  scenePhotoData=s?.photo||'';const prev=document.getElementById('scenePhotoPreview');prev.src=scenePhotoData;prev.classList.toggle('hidden',!scenePhotoData);
+  const intSel=document.getElementById('sceneIntensity');const intKnown=s&&KNOWN_POS.includes((s.intensity||'').toLowerCase());
+  if(s&&s.intensity&&!intKnown){intSel.value='Other';document.getElementById('sceneIntensityCustomField').classList.remove('hidden');document.getElementById('sceneIntensityCustom').value=s.intensity;}
+  else{intSel.value=s?.intensity||'Jumpscare';document.getElementById('sceneIntensityCustomField').classList.add('hidden');document.getElementById('sceneIntensityCustom').value='';}
+  sceneOverlay.classList.remove('hidden');document.getElementById('sceneName').focus();
+}
+function closeSceneModal(){sceneOverlay.classList.add('hidden');}
+document.getElementById('sceneCancelBtn').addEventListener('click',closeSceneModal);
+document.getElementById('sceneDeleteBtn').addEventListener('click',()=>{if(editingSceneId)requestDelete('scene',editingSceneId);});
+document.getElementById('sceneForm').addEventListener('submit',async e=>{
+  e.preventDefault();if(!isEditor())return;const intVal=document.getElementById('sceneIntensity').value;const intensity=intVal==='Other'?(document.getElementById('sceneIntensityCustom').value.trim()||'Other'):intVal;
+  const data={id:editingSceneId||genId(),name:document.getElementById('sceneName').value.trim()||'Unnamed Scene',photo:scenePhotoData,intensity,location:document.getElementById('sceneLocation').value.trim(),status:document.getElementById('sceneStatus').value,description:document.getElementById('sceneDescription').value.trim()};
+  const {error}=editingSceneId?await db.from('scenes').update(data).eq('id',editingSceneId):await db.from('scenes').insert(data);
+  if(error){toast(error.message);return;}closeSceneModal();await loadData();toast(editingSceneId?'Updated':'Added');
+});
+
+function wireCropTrigger(inputEl,target){inputEl.addEventListener('change',()=>{const f=inputEl.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{cropTarget=target;openCrop(reader.result);};reader.readAsDataURL(f);inputEl.value='';});}
+wireCropTrigger(document.getElementById('personPhotoInput'),'person');wireCropTrigger(document.getElementById('scenePhotoInput'),'scene');
+function openCrop(dataUrl){const img=new Image();img.onload=()=>{cropState.imgEl=img;cropOverlay.classList.remove('hidden');const rect=cropFrame.getBoundingClientRect();const minScale=Math.max(rect.width/img.width,rect.height/img.height);cropState.scale=minScale;cropState.x=(rect.width-img.width*minScale)/2;cropState.y=(rect.height-img.height*minScale)/2;zoomRange.min=minScale;zoomRange.max=minScale*3;zoomRange.step=(minScale*2)/100;zoomRange.value=minScale;cropImgEl.src=dataUrl;updateCropTransform();};img.src=dataUrl;}
+function updateCropTransform(){cropImgEl.style.left=cropState.x+'px';cropImgEl.style.top=cropState.y+'px';cropImgEl.style.transform=`scale(${cropState.scale})`;}
+function clampPosition(){const rect=cropFrame.getBoundingClientRect();const w=cropState.imgEl.width*cropState.scale,h=cropState.imgEl.height*cropState.scale;cropState.x=Math.min(0,Math.max(rect.width-w,cropState.x));cropState.y=Math.min(0,Math.max(rect.height-h,cropState.y));}
+cropFrame.addEventListener('pointerdown',e=>{cropState.dragging=true;cropState.startX=e.clientX-cropState.x;cropState.startY=e.clientY-cropState.y;cropFrame.setPointerCapture(e.pointerId);});
+cropFrame.addEventListener('pointermove',e=>{if(!cropState.dragging)return;cropState.x=e.clientX-cropState.startX;cropState.y=e.clientY-cropState.startY;clampPosition();updateCropTransform();});
+function endDrag(){cropState.dragging=false;}cropFrame.addEventListener('pointerup',endDrag);cropFrame.addEventListener('pointercancel',endDrag);
+zoomRange.addEventListener('input',()=>{cropState.scale=parseFloat(zoomRange.value);clampPosition();updateCropTransform();});
+function renderCrop(){const OUT_W=300,OUT_H=400,rect=cropFrame.getBoundingClientRect(),sx=-cropState.x/cropState.scale,sy=-cropState.y/cropState.scale,sw=rect.width/cropState.scale,sh=rect.height/cropState.scale;const canvas=document.createElement('canvas');canvas.width=OUT_W;canvas.height=OUT_H;canvas.getContext('2d').drawImage(cropState.imgEl,sx,sy,sw,sh,0,0,OUT_W,OUT_H);return canvas.toDataURL('image/jpeg',0.87);}
+function closeCropModal(){cropOverlay.classList.add('hidden');}
+document.getElementById('cropCancelBtn').addEventListener('click',closeCropModal);document.getElementById('cropConfirmBtn').addEventListener('click',()=>{const dataUrl=renderCrop();if(cropTarget==='person'){personPhotoData=dataUrl;const pv=document.getElementById('personPhotoPreview');pv.src=dataUrl;pv.classList.remove('hidden');}else{scenePhotoData=dataUrl;const pv=document.getElementById('scenePhotoPreview');pv.src=dataUrl;pv.classList.remove('hidden');}closeCropModal();});
+
+function openAuth(mode){authMode=mode;document.getElementById('authTitle').textContent=mode==='login'?'Log In':'Create Account';document.getElementById('authSubmitBtn').textContent=mode==='login'?'Log In':'Create Account';document.getElementById('authToggleBtn').textContent=mode==='login'?'Create Account':'Back to Log In';document.getElementById('authStatus').textContent='';document.getElementById('authForm').reset();authOverlay.classList.remove('hidden');document.getElementById('authEmail').focus();}
+document.getElementById('authCancelBtn').addEventListener('click',()=>authOverlay.classList.add('hidden'));
+document.getElementById('authToggleBtn').addEventListener('click',()=>openAuth(authMode==='login'?'signup':'login'));
+document.getElementById('authForm').addEventListener('submit',async e=>{
+  e.preventDefault();const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value,status=document.getElementById('authStatus');status.textContent='Working…';
+  if(authMode==='login'){
+    const {error}=await db.auth.signInWithPassword({email,password});if(error){status.textContent=error.message;return;}authOverlay.classList.add('hidden');await refreshAuth();toast('Logged in');
+  }else{
+    const {data,error}=await db.auth.signUp({email,password});if(error){status.textContent=error.message;return;}status.textContent=data.session?'Account created.':'Account created. Check your email to confirm it, then log in.';
+  }
+});
+
+async function refreshAuth(){const {data}=await db.auth.getSession();currentUser=data.session?.user||null;await loadRole();render();}
+
+async function openAdmin(){
+  if(!isAdmin())return;
+  const {data,error}=await db.from('profiles').select('id,email,role,created_at').order('created_at',{ascending:true});
+  if(error){toast(error.message);return;}
+  const wrap=document.getElementById('adminTableWrap');
+  if(!data?.length){wrap.innerHTML='<p class="auth-status">No user accounts yet.</p>';adminOverlay.classList.remove('hidden');return;}
+  wrap.innerHTML=`<table class="admin-table"><thead><tr><th>Email</th><th>Role</th></tr></thead><tbody>${data.map(u=>`<tr><td>${esc(u.email||'')}</td><td><select data-user-id="${u.id}" ${u.id===currentUser?.id?'data-self="true"':''}><option value="viewer" ${u.role==='viewer'?'selected':''}>Viewer</option><option value="editor" ${u.role==='editor'?'selected':''}>Editor</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></td></tr>`).join('')}</tbody></table>`;
+  wrap.querySelectorAll('select').forEach(sel=>sel.addEventListener('change',async e=>{
+    const id=e.target.dataset.userId,role=e.target.value;
+    if(id===currentUser?.id && role!=='admin'){e.target.value='admin';toast('Keep at least one admin account.');return;}
+    const {error}=await db.from('profiles').update({role}).eq('id',id);
+    if(error){toast(error.message);return;}toast('Permission updated');
+    if(id===currentUser?.id){await refreshAuth();}
+  }));
+  adminOverlay.classList.remove('hidden');
+}
+document.getElementById('adminCloseBtn').addEventListener('click',()=>adminOverlay.classList.add('hidden'));
+
+function wireOverlay(overlay,onBackdropClose){let down=false;overlay.addEventListener('mousedown',e=>{down=e.target===overlay;});overlay.addEventListener('click',e=>{if(e.target===overlay&&down)onBackdropClose();down=false;});}
+wireOverlay(personOverlay,closePersonModal);wireOverlay(sceneOverlay,closeSceneModal);wireOverlay(confirmOverlay,()=>{confirmOverlay.classList.add('hidden');pendingDelete=null;});wireOverlay(cropOverlay,closeCropModal);wireOverlay(authOverlay,()=>authOverlay.classList.add('hidden'));wireOverlay(adminOverlay,()=>adminOverlay.classList.add('hidden'));
+
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!cropOverlay.classList.contains('hidden'))closeCropModal();else if(!personOverlay.classList.contains('hidden'))closePersonModal();else if(!sceneOverlay.classList.contains('hidden'))closeSceneModal();else if(!confirmOverlay.classList.contains('hidden')){confirmOverlay.classList.add('hidden');pendingDelete=null;}else if(!authOverlay.classList.contains('hidden'))authOverlay.classList.add('hidden');else if(!adminOverlay.classList.contains('hidden'))adminOverlay.classList.add('hidden');});
+
+db.auth.onAuthStateChange(()=>{setTimeout(()=>refreshAuth(),0);});
+
+(async()=>{await refreshAuth();await loadData();setView('people');db.channel('roster-live').on('postgres_changes',{event:'*',schema:'public',table:'people'},()=>loadData()).on('postgres_changes',{event:'*',schema:'public',table:'scenes'},()=>loadData()).subscribe();})();
+</script>
+
+</body>
+</html>
